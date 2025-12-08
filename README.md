@@ -101,4 +101,4 @@ This approach is significantly more efficient than brute-force enumeration of al
 
 ## Licence
 
-This is a personal puzzle-solving project.
+This project is licensed under the MIT Licence - see the [LICENSE](LICENSE) file for details.
