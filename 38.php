@@ -9,92 +9,133 @@
  *       Q  R  S
  */
 
-// Create range of available numbers
-$range = range(1, 19);
+$positions = range('A', 'S');
+$numbers   = range(1, 19);
 
-// Create grid of positions
-$positions = [];
-foreach (range('A', 'S') as $letter) {
-    $positions[$letter] = 0;
-}
-
-// Define available lines based on grid positions
+// Define lines
 $lines = [
-    ['A', 'B', 'C'],
-    ['D', 'E', 'F', 'G'],
-    ['H', 'I', 'J', 'K', 'L'],
-    ['M', 'N', 'O', 'P'],
-    ['Q', 'R', 'S'],
+    ['A','B','C'],
+    ['D','E','F','G'],
+    ['H','I','J','K','L'],
+    ['M','N','O','P'],
+    ['Q','R','S'],
 
-    ['H', 'M', 'Q'],
-    ['D', 'I', 'N', 'R'],
-    ['A', 'E', 'J', 'O', 'S'],
-    ['B', 'F', 'K', 'P'],
-    ['C', 'G', 'L'],
+    ['H','M','Q'],
+    ['D','I','N','R'],
+    ['A','E','J','O','S'],
+    ['B','F','K','P'],
+    ['C','G','L'],
 
-    ['A', 'D', 'H'],
-    ['B', 'E', 'I', 'M'],
-    ['C', 'F', 'J', 'N', 'Q'],
-    ['G', 'K', 'O', 'R'],
-    ['L', 'P', 'S'],
-
+    ['A','D','H'],
+    ['B','E','I','M'],
+    ['C','F','J','N','Q'],
+    ['G','K','O','R'],
+    ['L','P','S'],
 ];
 
-$highest_valid_lines = 0;
+$target = 38;
 
-function pc_permute($items, $perms = [])
-{
-    global $positions, $lines, $highest_valid_lines;
-    if (empty($items)) {
-        $tmpPerms = $perms;
-        array_splice($tmpPerms, 3);
-        $first_score = array_sum($tmpPerms);
-        if (38 == $first_score) {
-            echo 'First OK '.implode(' ', $perms)."\n";
-            // Assign numbers to positions
-            $index = 0;
-            foreach ($positions as $letter => $value) {
-                $positions[$letter] = $perms[$index];
-                $index++;
-            }
-
-            // Check if all lines add up to 38. If a non 38 sum is encountered break and continue. If number of valid lines is 15 print_r $positions since that's the solution
-            $valid_lines = 0;
-            foreach ($lines as $line) {
-                $total = 0;
-                foreach ($line as $letter) {
-                    $total += $positions[$letter];
-                }
-                if (38 == $total) {
-                    $valid_lines++;
-                } else {
-                    //break;
-                }
-            }
-
-            if ($highest_valid_lines < $valid_lines) {
-                $highest_valid_lines = $valid_lines;
-            }
-
-            // If all lines add up to 38, we've found ourselves a winner. Let's output and exit
-            if (count($lines) == $valid_lines) {
-                print_r($positions);
-                exit(0);
-            } else {
-                echo 'Valid lines '.$valid_lines.' highest: '.$highest_valid_lines."\n";
-            }
-        } else {
-            //echo "skip first: " . implode(" ", $perms) . "\n";
-        }
-    } else {
-        for ($i = count($items) - 1; $i >= 0; --$i) {
-            $newitems = $items;
-            $newperms = $perms;
-            list($foo) = array_splice($newitems, $i, 1);
-            array_unshift($newperms, $foo);
-            pc_permute($newitems, $newperms);
-        }
+// Build lookup: which lines each position belongs to?
+$linesForPosition = [];
+foreach ($positions as $pos) {
+    $linesForPosition[$pos] = [];
+}
+foreach ($lines as $idx => $line) {
+    foreach ($line as $pos) {
+        $linesForPosition[$pos][] = $idx;
     }
+}
+
+// Track current line sums and counts
+$lineSums  = array_fill(0, count($lines), 0);
+$lineCount = array_map('count', $lines);
+
+// Sort positions by “constrainedness”
+usort($positions, function ($a, $b) use ($linesForPosition) {
+    return count($linesForPosition[$b]) <=> count($linesForPosition[$a]);
+});
+
+// Print final grid in original layout
+function printGrid(array $assignment)
+{
+    echo "\nFinal Grid:\n\n";
+
+    printf("      %2d  %2d  %2d\n", $assignment['A'], $assignment['B'], $assignment['C']);
+    printf("     %2d  %2d  %2d  %2d\n", $assignment['D'], $assignment['E'], $assignment['F'], $assignment['G']);
+    printf("    %2d  %2d  %2d  %2d  %2d\n", $assignment['H'], $assignment['I'], $assignment['J'], $assignment['K'], $assignment['L']);
+    printf("     %2d  %2d  %2d  %2d\n", $assignment['M'], $assignment['N'], $assignment['O'], $assignment['P']);
+    printf("       %2d  %2d  %2d\n", $assignment['Q'], $assignment['R'], $assignment['S']);
+
+    echo "\n";
+}
+
+// Backtracking search
+function solve($posIndex, $positions, $numbers, &$assignment, $lines, $linesForPosition, &$lineSums, $lineCount, $target)
+{
+    if ($posIndex === count($positions)) {
+        return true;
+    }
+
+    $pos = $positions[$posIndex];
+
+    foreach ($numbers as $i => $number) {
+
+        $assignment[$pos] = $number;
+        $valid = true;
+        $affected = [];
+
+        foreach ($linesForPosition[$pos] as $lineIndex) {
+            $lineSums[$lineIndex] += $number;
+            $affected[] = $lineIndex;
+
+            // Count assigned slots in this line
+            $used = 0;
+            foreach ($lines[$lineIndex] as $p) {
+                if (isset($assignment[$p])) {
+                    $used++;
+                }
+            }
+
+            // Too large already?
+            if ($lineSums[$lineIndex] > $target) {
+                $valid = false;
+                break;
+            }
+
+            // If line full but wrong sum
+            if ($used === $lineCount[$lineIndex] && $lineSums[$lineIndex] !== $target) {
+                $valid = false;
+                break;
+            }
+        }
+
+        if ($valid) {
+            $remaining = $numbers;
+            unset($remaining[$i]);
+
+            if (solve($posIndex + 1, $positions, $remaining, $assignment, $lines, $linesForPosition, $lineSums, $lineCount, $target)) {
+                return true;
+            }
+        }
+
+        // Undo
+        foreach ($affected as $lineIndex) {
+            $lineSums[$lineIndex] -= $number;
+        }
+        unset($assignment[$pos]);
+    }
+
+    return false;
+}
+
+// Run solver
+$assignment = [];
+if (solve(0, $positions, $numbers, $assignment, $lines, $linesForPosition, $lineSums, $lineCount, $target)) {
+    printGrid($assignment);
+} else {
+    echo "No solution found.\n";
+}
+
 }
 shuffle($range);
 pc_permute(array_reverse($range));
