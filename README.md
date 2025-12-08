@@ -34,35 +34,70 @@ The solver uses an optimised backtracking algorithm with constraint propagation:
    - A completed line doesn't equal 38
 4. **Efficient line tracking** - Pre-computes which lines each position belongs to
 
-## Running the Solver
+## Installation
 
 ### Requirements
 
-- PHP 7.0 or higher
+- PHP 8.4 or higher
+- Composer
 
-### Execution
+### Setup
 
 ```bash
-php 38.php
+composer install
 ```
 
-The programme will output the solution in the hexagonal grid format, showing the placement of all 19 numbers.
+## Usage
+
+### As a Library
+
+```php
+<?php
+
+require_once 'vendor/autoload.php';
+
+use Puzzle38\Solver;
+
+$solver = new Solver();
+$solution = $solver->solve();
+
+// Returns an associative array mapping positions to numbers
+// ['A' => 3, 'B' => 17, 'C' => 18, ...]
+```
+
+### Running Tests
+
+```bash
+vendor/bin/phpunit
+```
+
+The test suite validates that:
+- All 19 positions (A-S) are filled
+- Numbers 1-19 are used exactly once
+- All 15 lines sum to 38
+- The solver produces consistent results
 
 ### Example Output
 
 ```
 Final Grid:
 
-      15  13  10
-     14  12  08  04
-    19  11  07  05  01
-     18  09  06  03
-       17  16  02
+    03  17  18
+  19  07  01  11
+16  02  05  06  09
+  12  04  08  14
+    10  13  15
 ```
 
 ## Algorithm Complexity
 
-The backtracking algorithm explores the solution space systematically whilst pruning invalid branches early. This approach is significantly more efficient than brute-force enumeration of all 19! permutations.
+The backtracking algorithm explores the solution space systematically whilst pruning invalid branches early. Key optimisations include:
+
+- **No array copying** - Uses a boolean array to track used numbers instead of copying arrays on each recursion
+- **Cached line counts** - Maintains a counter for filled positions per line rather than recounting each time
+- **Early pruning** - Abandons branches as soon as constraints are violated
+
+This approach is significantly more efficient than brute-force enumeration of all 19! permutations.
 
 ## Licence
 
