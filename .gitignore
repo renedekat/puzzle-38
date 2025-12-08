@@ -17,3 +17,11 @@ nbproject
 ehthumbs.db
 Thumbs.db
 
+# Composer #
+############
+/vendor/
+composer.lock
+
+# PHPUnit #
+###########
+.phpunit.result.cache

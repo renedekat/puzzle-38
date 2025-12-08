@@ -1,0 +1,21 @@
+{
+    "name": "rdekat/puzzle-38",
+    "description": "Hexagonal grid puzzle solver",
+    "type": "project",
+    "require": {
+        "php": ">=8.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Puzzle38\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Puzzle38\\Tests\\": "tests/"
+        }
+    }
+}
