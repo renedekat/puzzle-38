@@ -135,7 +135,3 @@ if (solve(0, $positions, $numbers, $assignment, $lines, $linesForPosition, $line
 } else {
     echo "No solution found.\n";
 }
-
-}
-shuffle($range);
-pc_permute(array_reverse($range));
