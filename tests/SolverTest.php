@@ -36,29 +36,49 @@ class SolverTest extends TestCase
         ];
     }
 
-    public function testSolveReturnsValidSolution(): void
+    public function testSolveReturnsArray(): void
     {
         $solver = new Solver();
         $solution = $solver->solve();
 
-        // Assert solution is an array
         $this->assertIsArray($solution);
+    }
 
-        // Assert all 19 positions are filled
+    public function testSolveReturnsNineteenPositions(): void
+    {
+        $solver = new Solver();
+        $solution = $solver->solve();
+
         $this->assertCount(19, $solution);
+    }
 
-        // Assert all positions A-S are present
+    public function testSolveIncludesAllPositionsFromAToS(): void
+    {
+        $solver = new Solver();
+        $solution = $solver->solve();
+
         $positions = range('A', 'S');
         foreach ($positions as $pos) {
             $this->assertArrayHasKey($pos, $solution, "Solution missing position {$pos}");
         }
+    }
 
-        // Assert all values are numbers 1-19
+    public function testSolveUsesEachNumberFromOneToNineteenExactlyOnce(): void
+    {
+        $solver = new Solver();
+        $solution = $solver->solve();
+
         $values = array_values($solution);
         sort($values);
-        $this->assertEquals(range(1, 19), $values, 'Solution must contain numbers 1-19 exactly once');
 
-        // Assert all 15 lines sum to 38
+        $this->assertEquals(range(1, 19), $values);
+    }
+
+    public function testSolveEnsuresAllLinesSumToThirtyEight(): void
+    {
+        $solver = new Solver();
+        $solution = $solver->solve();
+
         foreach ($this->lines as $index => $line) {
             $sum = array_sum(array_map(fn($pos) => $solution[$pos], $line));
             $this->assertEquals(
